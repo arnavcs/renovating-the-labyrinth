@@ -29,6 +29,10 @@ function vrotate (vector, angle) {
          ,vector[0] * Math.sin(angle) + vector[1] * Math.cos(angle)];
 }
 
+function vvproj (vector, proj) {
+  return svtimes(vdot(vector, proj) / vmagnitude(proj), proj);
+}
+
 function mapHas (map, idx) {
   return 0 <= idx[1] && idx[1] < map.length
       && 0 <= idx[0] && idx[0] < map[map.length - 1 - idx[1]].length;

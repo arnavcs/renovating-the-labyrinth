@@ -75,13 +75,14 @@ function gameloop () {
                            svtimes(desiredMovement[0], vrotate(camera.dir, 90)));
   desiredMovement = svtimes(Math.sqrt(1/2), desiredMovement);
 
-  let testWallBlock = (wallDir) => (safeMapAt(map, vvplus(camera.pos, wallDir).map(Math.floor)) &&
+  let testWallBlock = (wallDir) => ((safeMapAt(map, vvplus(camera.pos, vrotate(wallDir, 30)).map(Math.floor)) ||
+                                     safeMapAt(map, vvplus(camera.pos, vrotate(wallDir, -30)).map(Math.floor))) &&
                                     vdot(desiredMovement, wallDir) > 0);
 
   if (testWallBlock([-0.1, 0]) || testWallBlock([0.1, 0]))
-    desiredMovement = [0, desiredMovement[1]];
+    desiredMovement = vvproj(desiredMovement, [0, 1]);
   if (testWallBlock([0, -0.1]) || testWallBlock([0, 0.1]))
-    desiredMovement = [desiredMovement[0], 0];
+    desiredMovement = vvproj(desiredMovement, [1, 0]);
 
   if (desiredMovement[0] != 0 || desiredMovement[1] != 0) {
     let moveTo = vvplus(camera.pos, svtimes(MOVE_SPEED / 100, desiredMovement));
