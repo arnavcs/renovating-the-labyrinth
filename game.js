@@ -14,7 +14,7 @@ let map = [[ 1,  0,  1,  2,  2,  1,  1,  1],
            [ 1,  0,  0,  0,  0,  0,  0,  1],
            [ 1,  1,  1,  1,  1,  1,  1,  1]];
 let camera = { 
-  pos: [1.1, 1.5], 
+  pos: [1.2, 1.5], 
   dir: vnormalize([2, 3]), 
   fov: 90 
 };
@@ -71,11 +71,21 @@ function updatePosition (event) {
 
 function gameloop () {
   let desiredMovement = [rightPressed - leftPressed, upPressed - downPressed];
-  if (desiredMovement[0] != 0 && desiredMovement[1] != 0) 
-    desiredMovement = svtimes(Math.sqrt(1/2), desiredMovement);
+  desiredMovement = vvplus(svtimes(desiredMovement[1], camera.dir), 
+                           svtimes(desiredMovement[0], vrotate(camera.dir, 90)));
+  desiredMovement = svtimes(Math.sqrt(1/2), desiredMovement);
+
+  let testWallBlock = (wallDir) => (safeMapAt(map, vvplus(camera.pos, wallDir).map(Math.floor)) &&
+                                    vdot(desiredMovement, wallDir) > 0);
+
+  if (testWallBlock([-0.1, 0]) || testWallBlock([0.1, 0]))
+    desiredMovement = [0, desiredMovement[1]];
+  if (testWallBlock([0, -0.1]) || testWallBlock([0, 0.1]))
+    desiredMovement = [desiredMovement[0], 0];
+
   if (desiredMovement[0] != 0 || desiredMovement[1] != 0) {
-    camera.pos = vvplus(camera.pos, svtimes(MOVE_SPEED * desiredMovement[1] / 100, camera.dir));
-    camera.pos = vvplus(camera.pos, svtimes(MOVE_SPEED * desiredMovement[0] / 100, vrotate(camera.dir, 90)));
+    let moveTo = vvplus(camera.pos, svtimes(MOVE_SPEED / 100, desiredMovement));
+    camera.pos = moveTo;
     changed = true;
   }
 
