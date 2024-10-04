@@ -134,12 +134,13 @@ function renderCol (ctx, col, map, camera, screen, screenWidth, screenHeight, op
 // camera has pos: vector, dir: vector, and fov: angle
 function render (map, camera, screen, options) {
   const ctx = screen.getContext("2d");
-  ctx.setTransform(2, 0, 0, 2, 0, 0);
+  let k = Math.floor(Math.sqrt(screen.width * screen.height / 100000));
+  ctx.setTransform(k, 0, 0, k, 0, 0);
   camera.plane = svtimes(Math.tan(Math.PI * camera.fov / 360), vrotate(camera.dir, 90));
   precomputeColourStrings(options);
 
-  let screenWidth = screen.width / 2;
-  let screenHeight = screen.height / 2;
+  let screenWidth = screen.width / k;
+  let screenHeight = screen.height / k;
 
   for (let col = 0; col < screenWidth; col++) {
     renderCol(ctx, col, map, camera, screen, screenWidth, screenHeight, options);
