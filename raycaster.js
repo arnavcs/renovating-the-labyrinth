@@ -1,7 +1,7 @@
 console.log("loaded raycaster")
 
-let cachedWallHeightScales = [];
-let colourToStringStore = [];
+let wallHeightScales = [];
+let colourStrings = [];
 
 function svtimes (scalar, vector) {
   return vector.map(a => scalar * a);
@@ -38,18 +38,14 @@ function mapAt (map, idx) {
   return map[map.length - 1 - idx[1]][idx[0]];
 }
 
-function clamp (val, bottom, top) {
-  return Math.max(Math.min(val, top), bottom);
-}
-
 function addAlpha (colour) {
   return [colour[0], colour[1], colour[2], 255];
 }
 
-function fillColourToStringStore (options) {
+function precomputeColourStrings(options) {
   let toString = (colour) => "rgb(" + colour[0] + ", " + colour[1] + ", " + colour[2] + ")";
-  colourToStringStore.push(toString(options.zeroColour));
-  options.wallColours.forEach((c) => colourToStringStore.push(toString(c)));
+  colourStrings.push(toString(options.zeroColour));
+  options.wallColours.forEach((c) => colourStrings.push(toString(c)));
 }
 
 function ditherAlpha (xr, yr, alpha) {
@@ -61,7 +57,7 @@ function ditherAlpha (xr, yr, alpha) {
 }
 
 function putPixel (ctx, x, y, idx) {
-  ctx.fillStyle = colourToStringStore[idx];
+  ctx.fillStyle = colourStrings[idx];
   ctx.fillRect(x, y, 1, 1);
 }
 
@@ -114,10 +110,10 @@ function renderCol (ctx, col, map, camera, screen, screenWidth, screenHeight, op
 
   let ray = vvplus(camera.dir, svtimes(cameraX, camera.plane));
 
-  if (cameraX <= 0 && cachedWallHeightScales.length == col) {
-    cachedWallHeightScales.push(screenHeight * Math.abs(vmagnitude(ray) / vdot(ray, camera.dir)));
+  if (cameraX <= 0 && wallHeightScales.length == col) {
+    wallHeightScales.push(screenHeight * Math.abs(vmagnitude(ray) / vdot(ray, camera.dir)));
   }
-  let wallHeightScale = cachedWallHeightScales[(cameraX <= 0) ? col : screenWidth - 1 - col];
+  let wallHeightScale = wallHeightScales[(cameraX <= 0) ? col : screenWidth - 1 - col];
 
   let collision = dda(map, camera.pos, ray);
   let wallHeight = wallHeightScale / collision[0];
@@ -140,7 +136,7 @@ function render (map, camera, screen, options) {
   const ctx = screen.getContext("2d");
   ctx.setTransform(2, 0, 0, 2, 0, 0);
   camera.plane = svtimes(Math.tan(Math.PI * camera.fov / 360), vrotate(camera.dir, 90));
-  fillColourToStringStore(options);
+  precomputeColourStrings(options);
 
   let screenWidth = screen.width / 2;
   let screenHeight = screen.height / 2;
