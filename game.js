@@ -2,17 +2,20 @@ console.log("loaded game")
 
 const MOUSE_SPEED = 10;
 const MOVE_SPEED = 10;
+const CHAR_RADIUS = 0.3;
 
-let changed = false;
 const CARDINAL_NEIGHBOURS = [[0, 1], [0, -1], [1, 0], [-1, 0]];
 
+let changed = false;
+let queuePlace = [];
+
 let map;
-let camera = { fov: 90 };
+let camera = { fov: 120 };
 let canvas;
 let options = {
   viewDist: 10, // distance till stop of light
-  wallColours: [[118, 131, 74], [156, 73, 65]],
-  zeroColour: [30, 41, 39],
+  wallColours: ["#de4c63", "#ff9f74"],
+  zeroColour: "#31112d",
   dithering: true,
   pixels: 40000
 };
@@ -94,6 +97,9 @@ function keyHandler (keySet) {
       case "ArrowRight":
         rightPressed = keySet;
         break;
+      case "Space":
+        if (keySet) queuePlace.push(camera.pos.map(Math.floor));
+        break;
     }
   };
 }
@@ -113,6 +119,13 @@ function updateDirection (event) {
   changed = true;
 }
 
+function comfortablyOutside (tile, position) {
+  return ((position[0] <= tile[0] - CHAR_RADIUS) ||
+          (position[0] >= tile[0] + 1 + CHAR_RADIUS) ||
+          (position[1] <= tile[1] - CHAR_RADIUS) ||
+          (position[1] >= tile[1] + 1 + CHAR_RADIUS));
+}
+
 function gameloop () {
   let desiredMovement = [rightPressed - leftPressed, upPressed - downPressed];
   desiredMovement = vvplus(svtimes(desiredMovement[1], camera.dir), 
@@ -123,9 +136,9 @@ function gameloop () {
                                      getTile(vvplus(camera.pos, vrotate(wallDir, -30))) > 0) &&
                                     vdot(desiredMovement, wallDir) > 0);
 
-  if (testWallBlock([-0.3, 0]) || testWallBlock([0.3, 0]))
+  if (testWallBlock([-CHAR_RADIUS, 0]) || testWallBlock([CHAR_RADIUS, 0]))
     desiredMovement = vvproj(desiredMovement, [0, 1]);
-  if (testWallBlock([0, -0.3]) || testWallBlock([0, 0.3]))
+  if (testWallBlock([0, -CHAR_RADIUS]) || testWallBlock([0, CHAR_RADIUS]))
     desiredMovement = vvproj(desiredMovement, [1, 0]);
 
   if (desiredMovement[0] != 0 || desiredMovement[1] != 0) {
@@ -135,13 +148,22 @@ function gameloop () {
   }
 
   if (changed) {
+    console.log(queuePlace);
+    for (let i = queuePlace.length - 1; i >= 0; i--) {
+      let place = queuePlace[i];
+      if (comfortablyOutside(place, camera.pos)) {
+        queuePlace.splice[i, 1];
+        mapSet(map, place, 2);
+      }
+    }
+
     render(map, camera, canvas, options);
     changed = false;
   }
 }
 
 window.onload = function () {
-  document.body.style.backgroundColor = colourToString(options.zeroColour);
+  document.body.style.backgroundColor = options.zeroColour;
 
   canvas = document.getElementById("screen");
   canvas.height = window.innerHeight;

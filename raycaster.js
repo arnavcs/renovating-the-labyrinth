@@ -33,6 +33,10 @@ function vvproj (vector, proj) {
   return svtimes(vdot(vector, proj) / vmagnitude(proj), proj);
 }
 
+function vvequal (vector1, vector2) {
+  return vector1.map((a, i) => (a == vector2[i])).reduce((acc, val) => (acc && val), true);
+}
+
 function mapHas (map, idx) {
   return 0 <= idx[1] && idx[1] < map.length
       && 0 <= idx[0] && idx[0] < map[map.length - 1 - idx[1]].length;
@@ -55,13 +59,9 @@ function addAlpha (colour) {
   return [colour[0], colour[1], colour[2], 255];
 }
 
-function colourToString (colour) {
-  return "rgb(" + colour[0] + ", " + colour[1] + ", " + colour[2] + ")";
-}
-
 function precomputeColourStrings(options) {
-  colourStrings.push(colourToString(options.zeroColour));
-  options.wallColours.forEach((c) => colourStrings.push(colourToString(c)));
+  colourStrings.push(options.zeroColour);
+  options.wallColours.forEach((c) => colourStrings.push(c));
 }
 
 function ditherAlpha (xr, yr, alpha) {
@@ -127,7 +127,7 @@ function renderCol (ctx, col, map, camera, screen, screenWidth, screenHeight, op
   let ray = vvplus(camera.dir, svtimes(cameraX, camera.plane));
 
   if (cameraX <= 0 && wallHeightScales.length == col) {
-    wallHeightScales.push(screenHeight * Math.abs(vmagnitude(ray) / vdot(ray, camera.dir)));
+    wallHeightScales.push(0.6 * screenHeight * Math.abs(vmagnitude(ray) / vdot(ray, camera.dir)));
   }
   let wallHeightScale = wallHeightScales[(cameraX <= 0) ? col : screenWidth - 1 - col];
 
