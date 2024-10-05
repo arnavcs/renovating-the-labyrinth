@@ -42,6 +42,10 @@ function mapAt (map, idx) {
   return map[map.length - 1 - idx[1]][idx[0]];
 }
 
+function mapSet (map, idx, value) {
+  map[map.length - 1 - idx[1]][idx[0]] = value;
+}
+
 function safeMapAt (map, idx) {
   if (!mapHas(map, idx)) return 0;
   return map[map.length - 1 - idx[1]][idx[0]];
@@ -51,10 +55,13 @@ function addAlpha (colour) {
   return [colour[0], colour[1], colour[2], 255];
 }
 
+function colourToString (colour) {
+  return "rgb(" + colour[0] + ", " + colour[1] + ", " + colour[2] + ")";
+}
+
 function precomputeColourStrings(options) {
-  let toString = (colour) => "rgb(" + colour[0] + ", " + colour[1] + ", " + colour[2] + ")";
-  colourStrings.push(toString(options.zeroColour));
-  options.wallColours.forEach((c) => colourStrings.push(toString(c)));
+  colourStrings.push(colourToString(options.zeroColour));
+  options.wallColours.forEach((c) => colourStrings.push(colourToString(c)));
 }
 
 function ditherAlpha (xr, yr, alpha) {
@@ -143,7 +150,7 @@ function renderCol (ctx, col, map, camera, screen, screenWidth, screenHeight, op
 // camera has pos: vector, dir: vector, and fov: angle
 function render (map, camera, screen, options) {
   const ctx = screen.getContext("2d");
-  let k = Math.max(1, Math.floor(Math.sqrt(screen.width * screen.height / 100000)));
+  let k = Math.max(1, Math.floor(Math.sqrt(screen.width * screen.height / options.pixels)));
   ctx.setTransform(k, 0, 0, k, 0, 0);
   camera.plane = svtimes(Math.tan(Math.PI * camera.fov / 360), vrotate(camera.dir, 90));
   precomputeColourStrings(options);
