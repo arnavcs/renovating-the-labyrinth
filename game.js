@@ -1,14 +1,26 @@
 console.log("loaded game")
 
+/******************/
+/* const settings */
+/******************/
 const MOUSE_SPEED = 10;
 const MOVE_SPEED = 10;
 const CHAR_RADIUS = 0.3;
 
+/*******************/
+/* inherent consts */
+/*******************/
 const CARDINAL_NEIGHBOURS = [[0, 1], [0, -1], [1, 0], [-1, 0]];
 
+/**************************/
+/* global state variables */
+/**************************/
 let changed = false;
 let queuePlace = [];
 
+/*******************/
+/* raycasting args */
+/*******************/
 let map;
 let camera = { fov: 120 };
 let canvas;
@@ -20,15 +32,59 @@ let options = {
   pixels: 40000
 };
 
+/**************/
+/* user input */
+/**************/
 let rightPressed = false;
 let leftPressed = false;
 let upPressed = false;
 let downPressed = false;
+let spacePressed = false;
 
-function getTile (pos) {
-  return safeMapAt(map, pos.map(Math.floor));
+function keyHandler (keySet) {
+  return (event) => {
+    switch (event.code) {
+      case "KeyW":
+      case "ArrowUp":
+        upPressed = keySet;
+        break;
+      case "KeyA":
+      case "ArrowLeft":
+        leftPressed = keySet;
+        break;
+      case "KeyS":
+      case "ArrowDown":
+        downPressed = keySet;
+        break;
+      case "KeyD":
+      case "ArrowRight":
+        rightPressed = keySet;
+        break;
+      case "Space":
+        spacePressed = keySet;
+        break;
+    }
+  };
 }
 
+function lockChangeAlert () {
+  if (document.pointerLockElement === canvas) {
+    console.log("The pointer lock status is now locked");
+    document.addEventListener("mousemove", updateDirection, false);
+  } else {
+    console.log("The pointer lock status is now unlocked");
+    document.removeEventListener("mousemove", updateDirection, false);
+  }
+}
+
+function updateDirection (event) {
+  camera.dir = vrotate(camera.dir, MOUSE_SPEED * event.movementX / 100);
+  changed = true;
+}
+
+/******************/
+/* map generation */
+/******************/
 // uses the randomized Prim's Algorithm
 function generateMaze (side) {
   map = [];
@@ -67,66 +123,19 @@ function generateMaze (side) {
 
   camera.pos = [1.5, 1.5];
   camera.dir = vnormalize([1, 1]);
-
-  for (let orbIdx = 0; orbIdx < 5; orbIdx++) {
-    let proposed = [1, 1];
-    while ((proposed[0] == 1 && proposed[1] == 1) ||
-           safeMapAt(map, proposed) != 0) {
-      proposed = [2 * Math.floor(Math.random() * side) + 1, 2 * Math.floor(Math.random() * side) + 1];
-    }
-    mapSet(map, proposed, -1);
-  }
 }
 
-function keyHandler (keySet) {
-  return (event) => {
-    switch (event.code) {
-      case "KeyW":
-      case "ArrowUp":
-        upPressed = keySet;
-        break;
-      case "KeyA":
-      case "ArrowLeft":
-        leftPressed = keySet;
-        break;
-      case "KeyS":
-      case "ArrowDown":
-        downPressed = keySet;
-        break;
-      case "KeyD":
-      case "ArrowRight":
-        rightPressed = keySet;
-        break;
-      case "Space":
-        if (keySet) queuePlace.push(camera.pos.map(Math.floor));
-        break;
-    }
-  };
-}
-
-function lockChangeAlert () {
-  if (document.pointerLockElement === canvas) {
-    console.log("The pointer lock status is now locked");
-    document.addEventListener("mousemove", updateDirection, false);
-  } else {
-    console.log("The pointer lock status is now unlocked");
-    document.removeEventListener("mousemove", updateDirection, false);
-  }
-}
-
-function updateDirection (event) {
-  camera.dir = vrotate(camera.dir, MOUSE_SPEED * event.movementX / 100);
-  changed = true;
-}
-
-function comfortablyOutside (tile, position) {
-  return ((position[0] <= tile[0] - CHAR_RADIUS) ||
-          (position[0] >= tile[0] + 1 + CHAR_RADIUS) ||
-          (position[1] <= tile[1] - CHAR_RADIUS) ||
-          (position[1] >= tile[1] + 1 + CHAR_RADIUS));
-}
-
+/************/
+/* gameloop */
+/************/
 function gameloop () {
+  // place blocks
+  if (spacePressed) {
+    queuePlace.push(camera.pos.map(Math.floor));
+    spacePressed = false;
+  }
+
+  // movement
   let desiredMovement = [rightPressed - leftPressed, upPressed - downPressed];
   desiredMovement = vvplus(svtimes(desiredMovement[1], camera.dir), 
                            svtimes(desiredMovement[0], vrotate(camera.dir, 90)));
@@ -147,6 +156,7 @@ function gameloop () {
     changed = true;
   }
 
+  // re-rendering
   if (changed) {
     console.log(queuePlace);
     for (let i = queuePlace.length - 1; i >= 0; i--) {
@@ -162,6 +172,9 @@ function gameloop () {
   }
 }
 
+/*******************/
+/* initial startup */
+/*******************/
 window.onload = function () {
   document.body.style.backgroundColor = options.zeroColour;
 

@@ -1,8 +1,14 @@
 console.log("loaded raycaster")
 
+/**************************/
+/* global cache variables */
+/**************************/
 let wallHeightScales = [];
 let colourStrings = [];
 
+/********************/
+/* vector functions */
+/********************/
 function svtimes (scalar, vector) {
   return vector.map(a => scalar * a);
 }
@@ -37,6 +43,9 @@ function vvequal (vector1, vector2) {
   return vector1.map((a, i) => (a == vector2[i])).reduce((acc, val) => (acc && val), true);
 }
 
+/*****************/
+/* map functions */
+/*****************/
 function mapHas (map, idx) {
   return 0 <= idx[1] && idx[1] < map.length
       && 0 <= idx[0] && idx[0] < map[map.length - 1 - idx[1]].length;
@@ -55,6 +64,20 @@ function safeMapAt (map, idx) {
   return map[map.length - 1 - idx[1]][idx[0]];
 }
 
+function getTile (pos) {
+  return safeMapAt(map, pos.map(Math.floor));
+}
+
+function comfortablyOutside (tile, position) {
+  return ((position[0] <= tile[0] - CHAR_RADIUS) ||
+          (position[0] >= tile[0] + 1 + CHAR_RADIUS) ||
+          (position[1] <= tile[1] - CHAR_RADIUS) ||
+          (position[1] >= tile[1] + 1 + CHAR_RADIUS));
+}
+
+/********************/
+/* colour functions */
+/********************/
 function addAlpha (colour) {
   return [colour[0], colour[1], colour[2], 255];
 }
@@ -72,11 +95,17 @@ function ditherAlpha (xr, yr, alpha) {
   return (thresholdMat[yr][xr] + alpha > 0.5) ? 1 : 0;
 }
 
+/*******************/
+/* output function */
+/*******************/
 function putPixel (ctx, x, y, idx) {
   ctx.fillStyle = colourStrings[idx];
   ctx.fillRect(x, y, 1, 1);
 }
 
+/*************************************/
+/* ray - wall collision calculations */
+/*************************************/
 // digital differential analysis
 // returns [distance to collision or Infinity, direction of wall collided, collision wall type]
 function dda (map, pos, ray) {
@@ -121,6 +150,9 @@ function dda (map, pos, ray) {
   }
 }
 
+/*************/
+/* rendering */
+/*************/
 function renderCol (ctx, col, map, camera, screen, screenWidth, screenHeight, options) {
   let cameraX = 2 * col / (screenWidth - 1) - 1; // in [-1, 1]
 
