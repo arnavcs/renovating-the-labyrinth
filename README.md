@@ -10,7 +10,9 @@ You can also find the game on [itch.io](https://arnavcs.itch.io/renovating-the-l
 The raycasting method is optimized to ensure that the game can be played in real time.
 For this reason, the only objects which are raycasted are square walls.
 
-The rendering method is based off of calculating the height of the wall intersected by a given ray based on the distance to the interseciton ray based on the distance to the intersection.
+The rendering method is based off of calculating the height of the wall intersected by a given ray based on the distance to the intersection.
+The distance to the intersection is calculated with the Digital Differential Analyzer (DDA) algorithm.
+
 In order to avoid a fisheye effect, the height is then scaled as well.
 See [this](https://lodev.org/cgtutor/raycasting.html) raycasting guide for more information.
 
