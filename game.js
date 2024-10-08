@@ -189,7 +189,7 @@ function drawOverlay () {
   };
 
   ctx.textAlign = "right";
-  ctx.font = "50px monospace";
+  ctx.font = "40px monospace";
 
   writeText("✦", canvas.width - 25, 80);
   writeText("⏱", canvas.width - 13, 20);
@@ -197,7 +197,7 @@ function drawOverlay () {
   writeText(remainingTime, canvas.width - 80, 20);
 
   ctx.textAlign = "left";
-  ctx.font = "30px monospace";
+  ctx.font = "20px monospace";
 
   writeText("H: Help", 15, 15);
 
